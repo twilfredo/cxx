@@ -91,6 +91,7 @@ static bool is_aligned(const void *ptr) noexcept {
   return !(iptr % alignof(T));
 }
 
+#ifdef CXX_BUILD_NO_STD
 String::String() noexcept { cxxbridge1$string$new(this); }
 
 String::String(const String &other) noexcept {
@@ -292,7 +293,7 @@ std::ostream &operator<<(std::ostream &os, const String &s) {
 Str::Str() noexcept { cxxbridge1$str$new(this); }
 
 Str::Str(const String &s) noexcept { cxxbridge1$str$ref(this, &s); }
-
+#endif
 static void initStr(Str *self, const char *ptr, std::size_t len) {
   if (!cxxbridge1$str$from(self, ptr, len)) {
     panic<std::invalid_argument>("data for rust::Str is not utf-8");
@@ -740,6 +741,7 @@ static_assert(sizeof(std::string) <= kMaxExpectedWordsInString * sizeof(void *),
     self->~weak_ptr();                                                         \
   }
 
+#ifdef CXX_BUILD_NO_STD
 // Usize and isize are the same type as one of the below.
 #define FOR_EACH_NUMERIC(MACRO)                                                \
   MACRO(u8, std::uint8_t)                                                      \
@@ -790,3 +792,4 @@ inline namespace cxxbridge1 {
 FOR_EACH_RUST_VEC(RUST_VEC_OPS)
 } // namespace cxxbridge1
 } // namespace rust
+#endif
