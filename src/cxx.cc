@@ -4,6 +4,7 @@
 #include <memory>
 
 extern "C" {
+#if defined(RUST_CXX_NO_EXCEPTIONS)
 void cxxbridge1$cxx_string$init(std::string *s, const std::uint8_t *ptr,
                                 std::size_t len) noexcept {
   new (s) std::string(reinterpret_cast<const char *>(ptr), len);
@@ -62,7 +63,7 @@ bool cxxbridge1$str$from(rust::Str *self, const char *ptr,
                          std::size_t len) noexcept;
 const char *cxxbridge1$str$ptr(const rust::Str *self) noexcept;
 std::size_t cxxbridge1$str$len(const rust::Str *self) noexcept;
-
+#endif
 // rust::Slice
 void cxxbridge1$slice$new(void *self, const void *ptr,
                           std::size_t len) noexcept;
@@ -82,7 +83,7 @@ void panic [[noreturn]] (const char *msg) {
   throw Exception(msg);
 #endif
 }
-
+#ifdef CXX_BUILD_NO_STD
 template void panic<std::out_of_range> [[noreturn]] (const char *msg);
 
 template <typename T>
@@ -91,7 +92,7 @@ static bool is_aligned(const void *ptr) noexcept {
   return !(iptr % alignof(T));
 }
 
-#ifdef CXX_BUILD_NO_STD
+
 String::String() noexcept { cxxbridge1$string$new(this); }
 
 String::String(const String &other) noexcept {
@@ -293,7 +294,7 @@ std::ostream &operator<<(std::ostream &os, const String &s) {
 Str::Str() noexcept { cxxbridge1$str$new(this); }
 
 Str::Str(const String &s) noexcept { cxxbridge1$str$ref(this, &s); }
-#endif
+
 static void initStr(Str *self, const char *ptr, std::size_t len) {
   if (!cxxbridge1$str$from(self, ptr, len)) {
     panic<std::invalid_argument>("data for rust::Str is not utf-8");
@@ -378,7 +379,7 @@ std::ostream &operator<<(std::ostream &os, const Str &s) {
   os.write(s.data(), s.size());
   return os;
 }
-
+#endif
 void sliceInit(void *self, const void *ptr, std::size_t len) noexcept {
   cxxbridge1$slice$new(self, ptr, len);
 }
@@ -448,7 +449,7 @@ static_assert(std::is_same<Vec<const std::uint8_t>::const_iterator,
 static_assert(!std::is_same<Vec<std::uint8_t>::const_iterator,
                             Vec<std::uint8_t>::iterator>::value,
               "Vec<T>::const_iterator != Vec<T>::iterator");
-
+#ifdef CXX_BUILD_NO_STD
 static const char *errorCopy(const char *ptr, std::size_t len) {
   char *copy = new char[len];
   std::memcpy(copy, ptr, len);
@@ -497,7 +498,7 @@ Error &Error::operator=(Error &&other) &noexcept {
 }
 
 const char *Error::what() const noexcept { return this->msg; }
-
+#endif
 namespace {
 template <typename T>
 union MaybeUninit {
@@ -560,6 +561,7 @@ void destroy(T *ptr) {
 }
 } // namespace
 
+#if defined(RUST_CXX_NO_EXCEPTIONS)
 extern "C" {
 void cxxbridge1$unique_ptr$std$string$null(
     std::unique_ptr<std::string> *ptr) noexcept {
@@ -582,6 +584,7 @@ void cxxbridge1$unique_ptr$std$string$drop(
   ptr->~unique_ptr();
 }
 } // extern "C"
+#endif
 
 namespace {
 const std::size_t kMaxExpectedWordsInString = 8;
