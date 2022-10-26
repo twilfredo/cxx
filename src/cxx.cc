@@ -1,6 +1,9 @@
 #include "../include/cxx.h"
 #include <cstring>
+#if defined(RUST_CXX_NO_EXCEPTIONS)
+// See: https://stackoverflow.com/questions/51262869/i-see-a-lot-of-global-sub-i-also-from-unused-and-stripped-functions-how-to
 #include <iostream>
+#endif
 #include <memory>
 
 extern "C" {
@@ -542,6 +545,7 @@ public:
   void operator()(const std::string &) noexcept;
 };
 
+#ifdef CXX_BUILD_NO_STD
 void Fail::operator()(const char *catch$) noexcept {
   throw$ = cxxbridge1$exception(catch$, std::strlen(catch$));
 }
@@ -549,6 +553,8 @@ void Fail::operator()(const char *catch$) noexcept {
 void Fail::operator()(const std::string &catch$) noexcept {
   throw$ = cxxbridge1$exception(catch$.data(), catch$.length());
 }
+#endif
+
 } // namespace detail
 
 } // namespace cxxbridge1
