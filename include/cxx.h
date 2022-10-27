@@ -1,16 +1,18 @@
 #pragma once
-#include <algorithm>
 #include <array>
-#include <cassert>
 #include <cstddef>
 #include <cstdint>
-#include <exception>
 #include <initializer_list>
+#include <stdexcept>
+#include <string>
+
+#ifdef CXXBRIDGE1_RUST_STD
+#include <algorithm>
+#include <cassert>
+#include <exception>
 #include <iosfwd>
 #include <iterator>
 #include <new>
-#include <stdexcept>
-#include <string>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -19,6 +21,7 @@
 #else
 #include <sys/types.h>
 #endif
+#endif // CXXBRIDGE1_RUST_STD
 
 namespace rust {
 inline namespace cxxbridge1 {
@@ -31,6 +34,7 @@ class impl;
 }
 
 #ifndef CXXBRIDGE1_RUST_STRING
+#if CXXBRIDGE1_RUST_STD
 #define CXXBRIDGE1_RUST_STRING
 // https://cxx.rs/binding/string.html
 class String final {
@@ -100,9 +104,11 @@ private:
   // Size and alignment statically verified by rust_string.rs.
   std::array<std::uintptr_t, 3> repr;
 };
+#endif
 #endif // CXXBRIDGE1_RUST_STRING
 
 #ifndef CXXBRIDGE1_RUST_STR
+#if CXXBRIDGE1_RUST_STD
 #define CXXBRIDGE1_RUST_STR
 // https://cxx.rs/binding/str.html
 class Str final {
@@ -150,6 +156,7 @@ private:
 
   std::array<std::uintptr_t, 2> repr;
 };
+#endif
 #endif // CXXBRIDGE1_RUST_STR
 
 #ifndef CXXBRIDGE1_RUST_SLICE
@@ -412,8 +419,10 @@ using isize = ssize_t;
 #endif
 #endif // CXXBRIDGE1_RUST_ISIZE
 
+#ifdef CXXBRIDGE1_RUST_STD
 std::ostream &operator<<(std::ostream &, const String &);
 std::ostream &operator<<(std::ostream &, const Str &);
+#endif
 
 #ifndef CXXBRIDGE1_RUST_OPAQUE
 #define CXXBRIDGE1_RUST_OPAQUE
@@ -465,14 +474,18 @@ using f32 = float;
 using f64 = double;
 
 // Snake case aliases for use in code that uses this style for type names.
+#ifdef CXXBRIDGE1_RUST_STD
 using string = String;
 using str = Str;
+#endif
 template <typename T>
 using slice = Slice<T>;
+#ifdef CXXBRIDGE1_RUST_STD
 template <typename T>
 using box = Box<T>;
 template <typename T>
 using vec = Vec<T>;
+#endif
 using error = Error;
 template <typename Signature>
 using fn = Fn<Signature>;
